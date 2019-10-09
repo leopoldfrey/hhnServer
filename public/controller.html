@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Expires" content="0" />
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="js/jquery-3.4.1.min.js"></script>
+	<script src="js/ws.js"></script>
+	<style type="text/css">
+		* {
+			font-family: "Avenir next", sans-serif;
+			color: white;
+			background-color: black;
+		}
+		button {
+			border-radius: 5px;
+			padding: 4px 8px;
+			margin: 2px;
+		}
+		button:hover {
+			background-color: white;
+			color: black;
+		}
+		.buttons {
+			position: fixed;
+			/*height: 60px;*/
+			/*overflow: hidden;*/
+			width: 100%;
+			top: 0px;
+			left: 0px;
+			text-align: center;
+			z-index: 10;
+			background-color: rgba(255,255,255,0.5);
+		}
+		.external_container {
+			position: absolute;
+			height: calc(100% - 150px);
+			width: 100%;
+			z-index: -1;
+		}
+		.content {
+			font-size: 60px;
+			height: 100%;
+			overflow: scroll;
+			margin: 20px; 
+			border: 5px solid transparent;
+			padding: 20px;
+			border-radius: 10px;
+			overflow-y: hidden;
+			overflow-x: hidden;
+			display: 'none';
+		}
+		.solo {
+			border: 5px dotted magenta;
+		}
+		.duo {
+			border: 5px double cyan;
+		}
+		.trio {
+			border: 5px dashed yellow;
+		}
+		.none {
+			border: 5px solid transparent;
+		}
+		.gray {
+			border: 5px solid darkgray;
+		}
+		.simple {
+			border: 1px solid white;
+		}
+
+
+		.slider {
+			top: 8px;
+			position: relative;
+			left: 5px;
+		}
+		/*.slidecontainer {
+		  width: 100px;
+		}
+
+		.slider {
+		  width: 50px;
+		}
+
+		.slider:hover {
+		  opacity: 1;
+		}
+
+		.slider::-webkit-slider-thumb {
+		  -webkit-appearance: none;
+		  appearance: none;
+		  width: 25px;
+		  height: 25px;
+		  background: #4CAF50;
+		  cursor: pointer;
+		}
+
+		.slider::-moz-range-thumb {
+		  width: 25px;
+		  height: 25px;
+		  background: #4CAF50;
+		  cursor: pointer;
+		}*/
+
+	</style>
+	<script>
+
+		var id;
+
+		function getUsers() {
+    		//console.log("GET USERS");
+    		ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "getUsers"
+			}));
+	    }
+
+		function connectToWS() {
+	        // Connect to websocket server
+	        ws = new WebSocket(wsServer);
+
+	        // Log messages from the server
+	        ws.onmessage = function (e) {
+	            alert("WebSocket Received : "+e.data);
+	            console.log("| WS Received message: " + e.data);
+	            var reply = JSON.parse(e.data);
+	            
+	            if(reply.command == "id") {
+	            	id = reply.id;
+	            	$('#id').val(id);
+	            }
+	            /*if(reply.command == "goto") {
+	            	document.getElementById("curL").value = reply.lang;
+					document.getElementById("curR").value = reply.referendum;
+					if(reply.vote) {
+						console.log("reply.vote : "+reply.vote);
+						v = parseInt(reply.vote);
+						document.getElementById("curV").value = v;
+					}
+					if(reply.users) {
+						document.getElementById("curU").value = reply.users;
+					}
+	            }//*/
+	        };
+
+	        // Log errors
+	        ws.onerror = function (error) {
+	            alert("WebSocket Error " + error);
+	            console.error("WebSocket Error " + error.stack);
+	        };
+
+	        ws.onopen = function (event) {
+	            alert("WebSocket Opened");
+	            console.log("- Connected to ws server");
+	            ws.send(JSON.stringify(
+					{
+						charset : 'utf8mb4', 
+						command: "newController"
+					}));
+				setInterval(function() {
+					getUsers();
+				}, 1000);
+
+	        };
+	    }
+	</script>
+</head>
+<body>
+	<div class='buttons'>
+		<button onclick="reset()">reset</button>
+		<button onclick="stop()">stop</button>
+		<button onclick="start()">start</button>
+		&nbsp;&nbsp;
+		<span style='font-size: 10px; background-color: transparent;'>speed</span>
+		<input type="range" min="0" max="22" value="0" class="slider" id="speed">
+		&nbsp;&nbsp;
+		<span style='font-size: 10px; background-color: transparent;'>size</span>
+		<input type="range" min="10" max="100" value="60" class="slider" id="fontsize">
+		<br/>
+		<button onclick="doClear()">clear</button>
+		&nbsp;&nbsp;
+		<button onclick="load('textes/texte1.txt')">txt1</button>
+		<button onclick="load('textes/texte2.txt')">txt2</button>
+		<button onclick="load('textes/texte3.txt')">txt3</button>
+		<button onclick="load('textes/texte4.txt')">txt4</button>
+		<button onclick="load('textes/texte5.txt')">txt5</button>
+		<button onclick="load('textes/texte6.txt')">txt6</button>
+		<br/>
+		<button onclick="mode('none'); ">none</button>
+		<button onclick="mode('simple')">simple</button>
+		<button onclick="mode('gray')">gray</button>
+		<button onclick="mode('solo')">solo</button>
+		<button onclick="mode('duo')">duo</button>
+		<button onclick="mode('trio')">trio</button>
+		<br/>
+		<input type="text" value="" id="id"></input>
+	</div>
+
+	<script type="text/javascript">
+
+		var ip = "0.0.0.0";
+		var speedBut = $('#speed');
+		var fontsizeBut = $('#fontsize');
+		var fontsize = 60;
+		var buttons = $('.buttons');
+		var spds = [ 50, 30, 20, 15, 10, 9, 8, 7, 6, 5, 4, 3, 2.5, 2, 1.75, 1.5, 1.25, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+		var spdIndex = 0;
+		speedBut.attr("max", spds.length-1);
+		speedBut.val(spdIndex);
+		
+		var befScrollWait = 2000;
+	    var resetTime = 200;
+	    
+	    function setFontsize(i) {
+	    	fontsize = i;
+	    	if(fontsize < 10)
+	    		fontsize = 10;
+	    	if(fontsize >= 100)
+	    		fontsize = 100;
+	    	fontsizeBut.val(fontsize);
+	    	
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "fontsize",
+				fontsize: fontsize,
+				id: id
+			}));
+	    }
+
+	    function setSpeed(i) {
+	    	spdIndex = i;
+	    	if(spdIndex < 0)
+  				spdIndex = 0;
+  			if(spdIndex >= spds.length)
+  				spdIndex = spds.length-1;
+  			speedBut.val(spdIndex);
+
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "speed",
+				speed: spdIndex,
+				id: id
+			}));
+	    }
+
+		function setResetTime(i) {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "resetTime",
+				time: resetTime,
+				id: id
+			}));
+	    }
+
+		function setWait(i) {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "waitTime",
+				time: befScrollWait,
+				id: id
+			}));
+	    }
+
+		function reset() {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "reset",
+				id: id
+			}));
+		}
+
+		function stop() {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "stop",
+				id: id
+			}));
+		}
+
+		function start() {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "start",
+				id: id
+			}));
+		}
+
+		function load(fn) {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "load",
+				filename: fn,
+				id: id
+			}));
+		}
+
+		function mode(m) {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "mode",
+				mode: m,
+				id: id
+			}));
+		}
+
+		function doClear() {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "clear",
+				id: id
+			}));
+		}
+
+    	function fullscreen() {
+			ws.send(JSON.stringify(
+			{
+				charset : 'utf8mb4', 
+				command: "fullscreen",
+				id: id
+			}));
+	    }
+
+		function key(k) {
+			switch(k)
+			{
+				case ' ':
+  					if(playing)
+  						stop();
+  					else
+	  					start();
+  					break;
+  				case 'r':
+  				case 'Escape':
+  					reset();
+  					break;
+  				case 'C':
+  					doClear();
+  					break;
+  				case 'q':
+  					setSpeed(parseInt(spdIndex)-1);
+	    			break;
+  				case 's':
+  					setSpeed(parseInt(spdIndex)+1);
+	    			break;
+  				case 'w':
+  					setFontsize(parseInt(fontsize)-1);
+	    			break;
+  				case 'x':
+  					setFontsize(parseInt(fontsize)+1);
+	    			break;
+	    		case 'f':
+	    			fullscreen();
+	    			break;
+  				default:
+  					console.log("KEY : "+k);
+  					break;
+  			}
+		}
+
+		$('html').keyup(function(event) {
+			key(event.key);
+		});
+		buttons.keyup(function(event) {
+			key(event.key);
+		});
+		speedBut.keyup(function(event) {
+			key(event.key);
+		});
+		fontsizeBut.keyup(function(event) {
+			key(event.key);
+		});
+		speedBut.on("change", function(){
+			spdIndex = $(this).val();
+			setSpeed(spdIndex);
+		});
+		fontsizeBut.on("change", function(){
+			fontsize = $(this).val();
+			setFontsize(fontsize);
+		});
+
+		connectToWS();
+	</script>
+</body>
+</html>
+

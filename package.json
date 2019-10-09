@@ -1,0 +1,14 @@
+{
+  "name": "HhnServer",
+  "version": "0.0.1",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "body-parser": "latest",
+    "express": "^4.17.1",
+    "serve-index": "latest",
+    "shortid": "^2.2.15",
+    "ws": "latest"
+  }
+}
