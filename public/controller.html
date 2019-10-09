@@ -125,7 +125,7 @@
 
 	        // Log messages from the server
 	        ws.onmessage = function (e) {
-	            alert("WebSocket Received : "+e.data);
+	            //alert("WebSocket Received : "+e.data);
 	            console.log("| WS Received message: " + e.data);
 	            var reply = JSON.parse(e.data);
 	            
@@ -149,12 +149,12 @@
 
 	        // Log errors
 	        ws.onerror = function (error) {
-	            alert("WebSocket Error " + error);
+	            //alert("WebSocket Error " + error);
 	            console.error("WebSocket Error " + error.stack);
 	        };
 
 	        ws.onopen = function (event) {
-	            alert("WebSocket Opened");
+	            //alert("WebSocket Opened");
 	            console.log("- Connected to ws server");
 	            ws.send(JSON.stringify(
 					{
@@ -197,7 +197,7 @@
 		<button onclick="mode('duo')">duo</button>
 		<button onclick="mode('trio')">trio</button>
 		<br/>
-		<input type="text" value="" id="id"></input>
+		<input type="text" value="" id="id" disabled></input>
 	</div>
 
 	<script type="text/javascript">
