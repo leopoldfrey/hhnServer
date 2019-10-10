@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+	<meta http-equiv="Pragma" content="no-cache" />
+	<meta http-equiv="Expires" content="0" />
+	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+	<script src="js/jquery-3.4.1.min.js"></script>
+	<link href="js/style.css" rel="stylesheet">
+</head>
+<body>
+	<div class='external_container'>
+		<div class='content'>
+			<div id='start'></div>
+			<div id='txt'>
+				Quorum<br/>
+				Acaena exigua<br/>
+				Amastra porcus<br/>
+				Amastra reticulata<br/>
+				Amastra subrostrata<br/>
+				Cyanea comata<br/>
+				Kokia lanceolata<br/>
+				Melicope cruciata<br/>
+				Ara tricolor<br/>
+				Columba versicolor<br/>
+				Dromaius minor<br/>
+				Mundia elpinor<br/>
+				Boromys torrei<br/>
+				Caracara lutosa<br/>
+				Carelia necra<br/>
+				Carelia tenebrosa<br/>
+				Carelia turricula<br/>
+				Eclectus infectus<br/>
+				Elimia brevis<br/>
+				Elimia clausa<br/>
+				Elimia fusiformis<br/>
+				Elimia impressa<br/>
+				Elimia jonesi<br/>
+				Elimia lachryma<br/>
+				Elimia laeta<br/>
+				Partula lutea<br/>
+				Partula cytherea<br/>
+				Peromona erinacea<br/>
+				Gazella bilkis<br/>
+				Gonidomus newtoni<br/>
+				Hippopotamus lemerlei<br/>
+				Isolobodon montanus<br/>
+				Notomys macrotis<br/>
+				Miconia abscondita<br/>
+				Microgoura meeki<br/>
+				Mirogrex hulensis<br/>
+				Moho apicalis<br/>
+				Moho bishopi<br/>
+				Moho braccatus<br/>
+				Moho nobilis<br/>
+				Eubalaenea Glacialis<br/>
+				ad astra
+			</div>
+			<div id='end'></div>
+		</div>
+	</div>
+	<script type="text/javascript">
+
+		var fontsize = 60;
+		var container = $('.content');
+		var start = $('#start');
+		var txt = $('#txt')
+	    var end = $('#end');
+	    var buttons = $('.buttons');
+		var spds = [ 50, 30, 20, 15, 10, 9, 8, 7, 6, 5, 4, 3, 2.5, 2, 1.75, 1.5, 1.25, 1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.4, 0.3, 0.2, 0.1];
+		var spdIndex = 0;
+			
+	    var filename = "texte1.txt";
+	    var scrollTo = end;
+	    var pixToScroll = 0;
+	    var befScrollWait = 2000;
+	    var resetTime = 200;
+	    var buttonsVisible = false;
+	    var playing = false;
+
+	    function setFontsize(i) {
+	    	fontsize = i;
+	    	if(fontsize < 10)
+	    		fontsize = 10;
+	    	if(fontsize >= 100)
+	    		fontsize = 100;
+	    	container.css({ 'font-size': fontsize+"px" });
+	    	doScroll();
+		}
+
+	    function setSpeed(i) {
+	    	spdIndex = i;
+	    	if(spdIndex < 0)
+  				spdIndex = 0;
+  			if(spdIndex >= spds.length)
+  				spdIndex = spds.length-1;
+  			doScroll();
+		}
+
+		function finished(){
+			console.log("FINISHED");
+			playing = false;
+			container.stop();
+		}
+
+		function reset() {
+			//console.log("RESET");
+			container.stop();
+			scrollTo = start;
+			pixToScroll = scrollTo.offset().top - container.offset().top + container.scrollTop();
+	    	//console.log("pixToScroll : "+pixToScroll);
+	    		
+			container.animate({
+				scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+			}, resetTime, "linear");
+			playing = false;
+		}
+
+		function stop() {
+			container.stop();
+			playing = false;
+		}
+
+		function doScroll() {
+			container.stop();
+			scrollTo = end;
+			console.log(end);
+			console.log("scroll from offset_"+container.offset().top+" scrollTop_"+container.scrollTop());
+			console.log("		to offset_"+scrollTo.offset().top);
+
+			//alert("Scroll to "+end);
+			pixToScroll = scrollTo.offset().top - container.offset().top + container.scrollTop();
+	    	console.log("		= pixToScroll_"+pixToScroll);
+	    	console.log("		* speed_"+spds[spdIndex]);
+	    		
+			container.animate({
+				scrollTop: scrollTo.offset().top - container.offset().top + container.scrollTop()
+			}, pixToScroll * spds[spdIndex], "linear", finished);
+			playing = true;
+		}
+
+		function setMode(m) {
+			//console.log("mode : "+m);
+			container.removeClass("solo duo trio none gray simple");
+			container.addClass(m);
+		}
+
+		function doClear() {
+			//console.log("CLEAR");
+			container.stop();
+			container.removeClass("solo duo trio none gray simple");
+			reset();
+			txt.empty();
+			playing = false;
+		}
+
+		function refresh() {
+			location.reload();
+		}
+
+		function key(k) {
+			switch(k)
+			{
+				case ' ':
+  					if(playing)
+  						stop();
+  					else
+	  					doScroll();
+  					break;
+  				case 'r':
+  				case 'Escape':
+  					reset();
+  					break;
+  				case 'C':
+  					doClear();
+  					break;
+  				case 'q':
+  					setSpeed(parseInt(spdIndex)-1);
+	    			break;
+  				case 's':
+  					setSpeed(parseInt(spdIndex)+1);
+	    			break;
+  				case 'w':
+  					setFontsize(parseInt(fontsize)-1);
+	    			break;
+  				case 'x':
+  					setFontsize(parseInt(fontsize)+1);
+	    			break;
+	    		case 'f':
+	    			fullscreen();
+	    			break;
+  				default:
+  					console.log("KEY : "+k);
+  					break;
+  			}
+		}
+
+		/*container.on('scroll touchmove mousewheel', function(e){
+			// ????
+		  e.preventDefault();
+		  e.stopPropagation();
+		  return false;
+		})//*/
+
+		$('html').keyup(function(event) {
+			key(event.key);
+		});
+		buttons.keyup(function(event) {
+			key(event.key);
+		});
+		container.keyup(function(event) {
+			key(event.key);
+		});
+		txt.keyup(function(event) {
+			key(event.key);
+		});
+
+		container.on("click", function() {
+			if(playing)
+				stop();
+			else
+				doScroll();
+		});
+
+		function requestFullScreen(element) {
+		    // Supports most browsers and their versions.
+		    var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+
+		    if (requestMethod) { // Native full screen.
+		        requestMethod.call(element);
+		    } else if (typeof window.ActiveXObject !== "undefined") { // Older IE.
+		        var wscript = new ActiveXObject("WScript.Shell");
+		        if (wscript !== null) {
+		            wscript.SendKeys("{F11}");
+		        }
+		    }
+		}
+
+    	function fullscreen() {
+	        var elem = document.body; // Make the body go full screen.
+			requestFullScreen(elem);
+	    }
+	</script>
+</body>
+</html>
+

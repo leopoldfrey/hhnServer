@@ -4,7 +4,7 @@
     
     var fileName = "data/votes.json";
     
-    if(window.location.hostname == "localhost" || window.location.hostname.startsWith("192.168")) {
+    if(window.location.hostname == "localhost" || window.location.hostname.startsWith("192.168") || window.location.hostname.includes(".local")) {
     	console.log("Websocket to localhost : "+window.location.hostname);
     	// LOCAL
     	wsServer = "ws://" + window.location.hostname + ":" + port;// + "/ws";
