@@ -8,105 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 	<script src="js/jquery-3.4.1.min.js"></script>
 	<script src="js/ws.js"></script>
-	<style type="text/css">
-		* {
-			font-family: "Avenir next", sans-serif;
-			color: white;
-			background-color: black;
-		}
-		button {
-			border-radius: 5px;
-			padding: 4px 8px;
-			margin: 2px;
-		}
-		button:hover {
-			background-color: white;
-			color: black;
-		}
-		.buttons {
-			position: fixed;
-			/*height: 60px;*/
-			/*overflow: hidden;*/
-			width: 100%;
-			top: 0px;
-			left: 0px;
-			text-align: center;
-			/*margin: 10px;*/
-			display: none;
-			z-index: 10;
-			background-color: rgba(255,255,255,0.5);
-		}
-		.external_container {
-			position: absolute;
-			height: calc(100% - 150px);
-			width: 100%;
-			z-index: -1;
-		}
-		.content {
-			font-size: 60px;
-			height: 100%;
-			overflow: scroll;
-			margin: 20px; 
-			border: 5px solid transparent;
-			padding: 20px;
-			border-radius: 10px;
-			overflow-y: hidden;
-			overflow-x: hidden;
-		}
-		.solo {
-			border: 5px dotted magenta;
-		}
-		.duo {
-			border: 5px double cyan;
-		}
-		.trio {
-			border: 5px dashed yellow;
-		}
-		.none {
-			border: 5px solid transparent;
-		}
-		.gray {
-			border: 5px solid darkgray;
-		}
-		.simple {
-			border: 1px solid white;
-		}
-
-
-		.slider {
-			top: 8px;
-			position: relative;
-			left: 5px;
-		}
-		/*.slidecontainer {
-		  width: 100px;
-		}
-
-		.slider {
-		  width: 50px;
-		}
-
-		.slider:hover {
-		  opacity: 1;
-		}
-
-		.slider::-webkit-slider-thumb {
-		  -webkit-appearance: none;
-		  appearance: none;
-		  width: 25px;
-		  height: 25px;
-		  background: #4CAF50;
-		  cursor: pointer;
-		}
-
-		.slider::-moz-range-thumb {
-		  width: 25px;
-		  height: 25px;
-		  background: #4CAF50;
-		  cursor: pointer;
-		}*/
-
-	</style>
+	<link href="js/style.css" rel="stylesheet">
 	<script>
 		var id;
 
@@ -117,26 +19,64 @@
 	        // Log messages from the server
 	        ws.onmessage = function (e) {
 	            //alert("WebSocket Received : "+e.data);
-	            console.log("| WS Received message: " + e.data);
+	            //console.log("| WS Received message: " + e.data);
 	            var reply = JSON.parse(e.data);
 	            
-	            if(reply.command == "id") {
-	            	id = reply.id;
-	            	$('#id').val(id);
-	            }
+	            console.log("* Command: "+reply.command);
 
-	            /*if(reply.command == "goto") {
-	            	document.getElementById("curL").value = reply.lang;
-					document.getElementById("curR").value = reply.referendum;
-					if(reply.vote) {
-						console.log("reply.vote : "+reply.vote);
-						v = parseInt(reply.vote);
-						document.getElementById("curV").value = v;
-					}
-					if(reply.users) {
-						document.getElementById("curU").value = reply.users;
-					}
-	            }//*/
+	            switch(reply.command)
+	            {
+	            	case "id" :
+		            	id = reply.id;
+		            	$('#id').val(id);
+		            	break;
+		            case "whosthere" :
+		            	ws.send(
+          					JSON.stringify({
+	            				charset : 'utf8mb4', 
+	            				command: "imthere",
+	            				to: reply.replyTo,
+	            				type: "user",
+	            				id: id
+        				}));
+		            	break;
+		            case "reset" :
+		            	reset();
+		            	break;
+	                case "start" :
+		            	doScroll();
+		            	break;
+	                case "stop" :
+		            	stop();
+		            	break;
+	                case "clear" :
+		            	doClear();
+		            	break;
+		            case "refresh" :
+		            	refresh();
+		            	break;
+	                /*case "fullscreen" :
+		            	fullscreen();
+		            	break;//*/
+	                case "load" :
+		            	load(reply.filename);
+		            	break;
+	                case "fontsize" :
+		            	setFontsize(reply.fontsize);
+		            	break;
+	                case "speed" :
+		            	setSpeed(reply.speed);
+		            	break;
+		            case "waitTime" :
+		            	waitTime = reply.time;
+		            	break;
+		            case "resetTime" :
+		            	resetTime = reply.time;
+		            	break;
+		            case "mode" :
+		            	setMode(reply.mode);
+
+	            }
 	        };
 
 	        // Log errors
@@ -163,7 +103,9 @@
 		<button onclick="reset()">reset</button>
 		<button onclick="stop()">stop</button>
 		<button onclick="doScroll()">scroll</button>
-		&nbsp;&nbsp;
+		<button onclick="refresh()">refresh</button>
+		<button onclick="fullscreen()">fullscreen</button>
+		<br/>
 		<span style='font-size: 10px; background-color: transparent;'>speed</span>
 		<input type="range" min="0" max="22" value="0" class="slider" id="speed">
 		&nbsp;&nbsp;
@@ -179,12 +121,12 @@
 		<button onclick="load('textes/texte5.txt')">txt5</button>
 		<button onclick="load('textes/texte6.txt')">txt6</button>
 		<br/>
-		<button onclick="mode('none'); ">none</button>
-		<button onclick="mode('simple')">simple</button>
-		<button onclick="mode('gray')">gray</button>
-		<button onclick="mode('solo')">solo</button>
-		<button onclick="mode('duo')">duo</button>
-		<button onclick="mode('trio')">trio</button>
+		<button onclick="setMode('none'); ">none</button>
+		<button onclick="setMode('simple')">simple</button>
+		<button onclick="setMode('gray')">gray</button>
+		<button onclick="setMode('solo')">solo</button>
+		<button onclick="setMode('duo')">duo</button>
+		<button onclick="setMode('trio')">trio</button>
 		<br/>
 		<input type="text" value="" id="id" disabled></input>
 	</div>
@@ -279,6 +221,7 @@
 			//console.log("DO SCROLL");
 			container.stop();
 			scrollTo = end;
+			//alert("Scroll to "+end);
 			pixToScroll = scrollTo.offset().top - container.offset().top + container.scrollTop();
 	    	//console.log("pixToScroll : "+pixToScroll);
 	    		
@@ -321,7 +264,7 @@
 			hideOptions();
 		}
 
-		function mode(m) {
+		function setMode(m) {
 			//console.log("mode : "+m);
 			container.removeClass("solo duo trio none gray simple");
 			container.addClass(m);
@@ -336,6 +279,10 @@
 			txt.empty();
 			hideOptions();
 			playing = false;
+		}
+
+		function refresh() {
+			location.reload();
 		}
 
 		function hideOptions() {
@@ -391,6 +338,12 @@
 		}
 
 		//load('textes/texte2.txt');
+
+		container.on('scroll touchmove mousewheel', function(e){
+		  e.preventDefault();
+		  e.stopPropagation();
+		  return false;
+		})
 
 		$('html').keyup(function(event) {
 			key(event.key);

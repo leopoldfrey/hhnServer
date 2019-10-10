@@ -6,6 +6,39 @@ var WebSocketServer	= WebSocket.Server;
 var app         	= express();
 var server 			  = http.createServer(app);
 var shortid       = require('shortid');
+var printer = require("printer");
+
+/*----------- PRINT -----------*/
+
+function printFile(filename) {
+  console.log("| Printing File : " + filename);
+  console.log("| Default Printer : "+printer.getDefaultPrinterName());
+  if( process.platform != 'win32') {
+    printer.printFile({filename:filename,
+      success:function(jobID){
+        console.log("√ sent to printer with ID: "+jobID);
+      },
+      error:function(err){
+        console.log(err);
+      }
+    });
+  } else {
+    // not yet implemented, use printDirect and text
+    var fs = require('fs');
+    printer.printDirect({data:fs.readFileSync(filename),
+      //printer: process.env[3], // printer name, if missing then will print to default printer
+      success:function(jobID){
+        console.log("√ sent to printer with ID: "+jobID);
+      },
+      error:function(err){
+        console.log(err);
+      }
+    });
+  }
+}
+
+//printFile("public/textes/texte4.txt");
+
 /* PARAMETERS */
 
 // use alternate localhost and the port Heroku assigns to $PORT
@@ -32,9 +65,13 @@ server.listen(port,function() {
     console.log("| Web Server listening port " + port);
 });
 
-/*-------- ID --------*/
+/*-------- USERS -------*/
+var users = [];
+
 function newId() {
-  return shortid.generate();
+  u = shortid.generate();
+  users.push(u);
+  return u;
 }
 
 /*----------- WS Server -----------*/
@@ -55,7 +92,7 @@ wss.on('connection', function connection(ws) {
     switch(input.command) {
       case "newController":
         id = newId();
-        console.log("New Controller ["+id+"]");
+        //console.log("New Controller ["+id+"]");
         ws.send(
           JSON.stringify({
             charset : 'utf8mb4', 
@@ -65,7 +102,7 @@ wss.on('connection', function connection(ws) {
         break;
       case "newUser":
         id = newId();
-        console.log("New User ["+id+"]");
+        //console.log("New User ["+id+"]");
         ws.send(
           JSON.stringify({
             charset : 'utf8mb4', 
@@ -74,40 +111,201 @@ wss.on('connection', function connection(ws) {
         }));
         break;
       case "clear":
-        console.log("TODO Clear");
+        //console.log("TODO Clear");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "clear"
+              }));
+          });
+        }
         break;
       case "start":
-        console.log("TODO Start");
+        //console.log("TODO Start");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "start"
+              }));
+          });
+        }
         break;
       case "stop":
-        console.log("TODO Stop");
+        //console.log("TODO Stop");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "stop"
+              }));
+          });
+        }
         break;
       case "reset":
-        console.log("TODO Reset");
+        //console.log("TODO Reset");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "reset"
+              }));
+          });
+        }
         break;
       case "load":
-        console.log("TODO Load "+input.filename);
+        //console.log("TODO Load "+input.filename);
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "load",
+                filename: input.filename
+              }));
+          });
+        }
         break;
-      case "fullscreen":
-        console.log("TODO Fullscreen");
-        break;
+      /*case "fullscreen":
+        //console.log("TODO Fullscreen");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "fullscreen"
+              }));
+          });
+        }
+        break;//*/
       case "fontsize":
-        console.log("TODO Fontsize "+input.fontsize);
+        //console.log("TODO Fontsize "+input.fontsize);
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "fontsize",
+                fontsize: input.fontsize
+              }));
+          });
+        }
         break;
       case "speed":
-        console.log("TODO Speed "+input.speed);
+        //console.log("TODO Speed "+input.speed);
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "speed",
+                speed: input.speed
+              }));
+          });
+        }
+        break;
+      case "mode":
+        //console.log("TODO mode "+input.mode);
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "mode",
+                mode: input.mode
+              }));
+          });
+        }
         break;
       case "resetTime":
-        console.log("TODO resetTime "+input.time);
+        //console.log("TODO resetTime "+input.time);
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "resetTime",
+                time: input.time
+              }));
+          });
+        }
         break;
       case "waitTime":
-        console.log("TODO waitTime "+input.time);
+        //console.log("TODO waitTime "+input.time);
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "waitTime",
+                time: input.time
+              }));
+          });
+        }
         break;
       case "getUsers":
         //console.log("TODO getUsers");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(
+              JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "whosthere",
+                replyTo: input.id
+              }));
+          });
+        }
         break;
-      case "mode":
-        console.log("TODO mode "+input.mode);
+      case "imthere":
+        //console.log("TODO getUsers");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(JSON.stringify(input));
+          });
+        }
+        break;
+      case "refresh":
+        //console.log("TODO getUsers");
+        if(wss)
+        {
+          wss.clients.forEach(function each(client) {
+            client.send(JSON.stringify(
+              {
+                charset : 'utf8mb4', 
+                command: "refresh"
+              }));
+          });
+        }
         break;
       case "finished":
         console.log("TODO finished "+input.id);
