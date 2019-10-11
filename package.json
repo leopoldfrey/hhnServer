@@ -5,7 +5,6 @@
     "start": "node app.js"
   },
   "dependencies": {
-    "body-parser": "latest",
     "express": "^4.17.1",
     "fs": "0.0.1-security",
     "printer": "^0.2.2",
